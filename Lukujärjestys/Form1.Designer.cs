@@ -62,6 +62,8 @@
             this.LukujarjestysDGV.ReadOnly = true;
             this.LukujarjestysDGV.Size = new System.Drawing.Size(996, 562);
             this.LukujarjestysDGV.TabIndex = 0;
+            this.LukujarjestysDGV.CellMouseClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.LukujarjestysDGV_CellMouseClick);
+            this.LukujarjestysDGV.SelectionChanged += new System.EventHandler(this.LukujarjestysDGV_SelectionChanged);
             // 
             // LabelViikko
             // 

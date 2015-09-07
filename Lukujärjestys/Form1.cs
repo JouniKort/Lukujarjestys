@@ -1,19 +1,15 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using AccessHandler = AccessSQL.AccessHandler;
 using SQLRakentaja = AccessSQL.SQLRakentaja;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 using System.Globalization;
 using System.Text.RegularExpressions;
-using System.Xml.Linq;
 using Lukujärjestys.Properties;
 using System.IO;
 
@@ -50,7 +46,7 @@ namespace Lukujärjestys
 
         private int Panel2Leveys;
 
-        private ContextMenu cMenu = new ContextMenu();
+        private ContextMenu cMenuPuu = new ContextMenu();
 
         public DataTableCollection DTC { get; private set; }
 
@@ -234,21 +230,21 @@ namespace Lukujärjestys
         private void TeePuuMenu()
         {
             MenuItem it1 = new MenuItem("Näytä");
-            cMenu.MenuItems.Add(it1);
-            it1.Click += new EventHandler(SubMenuClick);
+            cMenuPuu.MenuItems.Add(it1);
+            it1.Click += new EventHandler(SubMenuClickPuu);
             MenuItem it2 = new MenuItem("Poista");
-            it2.Click += new EventHandler(SubMenuClick);
-            cMenu.MenuItems.Add(it2);
+            it2.Click += new EventHandler(SubMenuClickPuu);
+            cMenuPuu.MenuItems.Add(it2);
             MenuItem it3 = new MenuItem("Poista tieto");
-            it3.Click += new EventHandler(SubMenuClick);
-            cMenu.MenuItems.Add(it3);
+            it3.Click += new EventHandler(SubMenuClickPuu);
+            cMenuPuu.MenuItems.Add(it3);
         }
 
-        private void SubMenuClick(object sender, EventArgs e)
+        private void SubMenuClickPuu(object sender, EventArgs e)
         {
             valitut.Clear();
             MenuItem it = sender as MenuItem;
-            System.Diagnostics.Debug.WriteLine("SubMenuClick "+it.Text+" "+NodeNimi);
+            AccessHandler.Viesti("SubMenuClick "+it.Text+" "+NodeNimi);
             string parent = "";
 
             if (NodeParent)                                                             //Parentin nodejen muutto
@@ -305,17 +301,41 @@ namespace Lukujärjestys
                 taulut.Remove(NodeNimi);
                 TeePuu();
             }
-            else
+            else if(!NodeParent && it.Text.Equals("Poista tieto"))
             {
                 MessageBox.Show("Yksittäisiä tietueita ei voi poistaa.\nPoista ylin solmu!", "Huom", MessageBoxButtons.OK);
             }
             if(valitut.Count > 0)
             {
                 MuutaTieto(parent, valitut, it.Text);
-                DGWAsetukset();
+                DGVAsetukset();
                 TeeLukujarjestysRAW();
                 TeeLukujarjestysDT();
             }
+        }
+
+        private void SubMenuClickDGV(object sender, EventArgs e)
+        {
+            MenuItem it = sender as MenuItem;
+            string teksti = it.Text;
+            AccessHandler.Viesti("Valittiin " + teksti);
+            string koodi = teksti.Substring(0, teksti.IndexOf("-")).Trim();
+            string nimi = teksti.Remove(0, teksti.IndexOf("-")).Trim();
+
+            NodeParent = false;                                                         //Node on aina Child
+            NodeValittu = null;                                                         //Etsitään tietoa vastaava solmu puusta
+            foreach(TreeNode node in Puu.Nodes)
+                if (koodi.Contains(node.Text))
+                    foreach(TreeNode child in node.Nodes)
+                        if (child.Text.Contains(nimi))
+                        {
+                            NodeValittu = child;
+                            break;
+                        }
+            if (NodeValittu == null)
+                return;
+            it.Text = "Poista";                                                         //MenuItem vastaa cMenuPuu:n MenuItemiä
+            SubMenuClickPuu(it, e);                                                     //Ajetaan funktio ohjelmallisesti
         }
 
         private void MuutaTieto(string taulu, List<string> rivi, string komento)
@@ -328,7 +348,7 @@ namespace Lukujärjestys
 
             foreach(string s in rivi)
             {
-                System.Diagnostics.Debug.WriteLine(komento+" "+s+" taulusta "+taulu);
+                AccessHandler.Viesti(komento+" "+s+" taulusta "+taulu);
                 DataRow dr = valinnat.NewRow();
                 dr.ItemArray = new string[] { "Nimi", "=", s ,""};
                 valinnat.Rows.Add(dr);
@@ -358,7 +378,7 @@ namespace Lukujärjestys
                 TeeLukujarjestysRAW();
 
             TarkastaViikko();
-            System.Diagnostics.Debug.WriteLine("Viikolla kursseja: " + LukujarjestysViikko.Rows.Count);
+            AccessHandler.Viesti("Viikolla kursseja: " + LukujarjestysViikko.Rows.Count);
             if(LukujarjestysViikko.Rows.Count > 0)
             {
                 PaivaJaAika();
@@ -440,7 +460,7 @@ namespace Lukujärjestys
                 string paiva = DR[2].ToString();
                 string alkaa = DR[3].ToString();
                 string loppuu = DR[4].ToString();
-                System.Diagnostics.Debug.WriteLine("Päivä " + paiva + " klo " + alkaa + "-" + loppuu);
+                AccessHandler.Viesti("Päivä " + paiva + " klo " + alkaa + "-" + loppuu);
                 int paivaIndeksi = 0;
                 int alkuIndeksi = 0;
                 int loppuIndeksi = 0;
@@ -572,10 +592,10 @@ namespace Lukujärjestys
             LukujarjestysViikko.Columns.Add("Torstai");
             LukujarjestysViikko.Columns.Add("Perjantai");
 
-            DGWAsetukset();
+            DGVAsetukset();
         }
 
-        private void DGWAsetukset()
+        private void DGVAsetukset()
         {
             Lukujarjestys.Rows.Clear();
             for (int i = 8; i < 21; i++)
@@ -588,6 +608,7 @@ namespace Lukujärjestys
             for (int i = 0; i < LukujarjestysDGV.Columns.Count; i++)
             {
                 LukujarjestysDGV.Columns[i].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                LukujarjestysDGV.Columns[i].SortMode = DataGridViewColumnSortMode.NotSortable;
                 if (i != 0)
                     LukujarjestysDGV.Columns[i].Width = 180;
                 else
@@ -608,13 +629,13 @@ namespace Lukujärjestys
         {
             if (!File.Exists(polku))
             {
-                MessageBox.Show("Tiedostoa ei löytynyt, käytä selausta", "Virhe", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Määriteltyä tietokantaa ei löytynyt, käytä selausta", "Virhe", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             Settings.Default["Polku"] = polku;
             Settings.Default.Save();
             AccessHandler.Yhdista(polku);
-            AccessHandler.ViestienNaytto(true);
+            AccessHandler.ViestienNaytto(Ulkoiset:true,Sisaiset:false);
             taulut = AccessHandler.EtsiTaulut();
             taulut.Remove("Lukkari");
             DTC = AccessHandler.HaeTaulut(taulut);
@@ -685,7 +706,7 @@ namespace Lukujärjestys
                     else
                         NodeParent = false;
                     NodeValittu = e.Node;
-                    cMenu.Show(Puu, e.Location);                    
+                    cMenuPuu.Show(Puu, e.Location);                    
                 }
             }
         }
@@ -695,7 +716,7 @@ namespace Lukujärjestys
             if (int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" "))) == 52)
                 LabelViikko.Text = "Viikko 0";
             LabelViikko.Text = "Viikko " + (int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" "))) + 1);
-            DGWAsetukset();
+            DGVAsetukset();
             TeeLukujarjestysDT();
         }
 
@@ -704,7 +725,7 @@ namespace Lukujärjestys
             if (int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" "))) == 1)
                 LabelViikko.Text = "Viikko 53";
             LabelViikko.Text = "Viikko " + (int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" "))) - 1);
-            DGWAsetukset();
+            DGVAsetukset();
             TeeLukujarjestysDT();
         }
 
@@ -716,12 +737,11 @@ namespace Lukujärjestys
                 foreach (TreeNode node in Puu.Nodes)
                 {
                     Puu.Select();
-                    System.Diagnostics.Debug.WriteLine(node.Text);
+                    AccessHandler.Viesti(node.Text);
                     if (node.Text.Equals(TextBoxEtsi.Text))
                         Puu.SelectedNode = node;
                 }
             }
-
         }
 
         private void RadioOmat_CheckedChanged(object sender, EventArgs e)
@@ -757,6 +777,7 @@ namespace Lukujärjestys
         private void ButtonSelaa_Click(object sender, EventArgs e)
         {
             OpenFileDialog dialogi = new OpenFileDialog();
+            dialogi.Title = "Valitse tietokanta";
             dialogi.Filter = ".mdb|*.mdb";
             dialogi.Multiselect = false;
             var res = dialogi.ShowDialog();
@@ -764,6 +785,40 @@ namespace Lukujärjestys
             {
                 YhdistaTietokanta(dialogi.FileName);
             }
+        }
+
+        private void LukujarjestysDGV_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if(e.Button == MouseButtons.Right)
+            {
+                ContextMenu cMenuDGV = new ContextMenu();
+                string teksti = LukujarjestysDGV.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+                if (teksti.Length < 1)                                                  //Solussa ei ole tekstiä => poistutaan
+                    return;
+                Regex reg = new Regex("\n");
+                int edellinen = 0;
+                int kierrokset = 0;
+                ContextMenu CM = new ContextMenu();
+                foreach(Match osuma in reg.Matches(teksti))                             //Tehdään jokaiselle solun kurssille oma MenuItem ja kasataan ContextMenu
+                {
+                    if(kierrokset % 2 == 0)
+                    {
+                        string nimi = teksti.Substring(edellinen, osuma.Index - edellinen).Trim();
+                        MenuItem it = new MenuItem("Poista " + nimi);
+                        it.Click += new EventHandler(SubMenuClickDGV);
+                        CM.MenuItems.Add(it);
+                        AccessHandler.Viesti(nimi);
+                    }
+                    edellinen = osuma.Index;
+                    kierrokset++;
+                }
+                CM.Show(this, this.PointToClient(Cursor.Position));
+            }
+        }
+
+        private void LukujarjestysDGV_SelectionChanged(object sender, EventArgs e)
+        {
+            LukujarjestysDGV.ClearSelection();
         }
     }
 }
