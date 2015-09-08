@@ -18,15 +18,25 @@ namespace Lukujärjestys
     public partial class Form1 : Form
     {
         private string NodeNimi;
-        private TreeNode NodeValittu;
-        private bool NodeParent;
+        private string Paiva;
 
-        private List<string> valitut = new List<string>();
+        private TreeNode NodeValittu;
+
+        private bool NodeParent;
+        private bool sovitettu = false;
+        private bool Paallekkaisia = false;
+        private bool Sisaiset = false;
+        private bool Ulkoiset = true;
+
+        private List<TreeNode> valitut = new List<TreeNode>();
         private List<string> taulut;
         private List<string> sarakkeet;
         private List<string> lukkariSarakkeet = new List<string>();
         private List<string> data;
         private List<string> URLit = new List<string>();
+        private string[] Paivat = { "", "ma", "ti", "ke", "to", "pe" };                 //Tyhjä kelloa verten
+        private string[] AlkuKello = { "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18" };
+        private string[] LoppuKello = {  "9", "10", "11", "12", "13", "14", "15", "16", "17", "18","19","20" };
 
         private DataTable Lukujarjestys = new DataTable();
         private DataTable lukujarjestysRAW;
@@ -43,8 +53,14 @@ namespace Lukujärjestys
         private Point PuuPoint;
         private Point HakuPoint;
         private Point NimiPoint;
+        private Point ApuPoint;
+        private Point SovitaPoint;
 
         private int Panel2Leveys;
+
+        private ToolTip tip1 = new ToolTip();
+        private ToolTip tip2 = new ToolTip();
+        private ToolTip tip3 = new ToolTip();
 
         private ContextMenu cMenuPuu = new ContextMenu();
 
@@ -73,6 +89,8 @@ namespace Lukujärjestys
             HakuPoint = TextBoxEtsi.Location;
             Panel2Leveys = splitContainer1.Panel2.Width;
             NimiPoint = LabelNimi.Location;
+            ApuPoint = ButtonApu.Location;
+            SovitaPoint = ButtonSovita.Location;
         }
 
         private void LisaaURLit()
@@ -193,6 +211,7 @@ namespace Lukujärjestys
             List<string> sarake = new List<string>();
             sarake.Add("Nimi");
             sarake.Add("Huom");
+            sarake.Add("Paiva");
             Puu.BeginUpdate();
             int indeksi = 0;
 
@@ -207,10 +226,20 @@ namespace Lukujärjestys
             {
                 DataTable DT = AccessHandler.SQLkomento(SQLRakentaja.SELECT(sarake, s))[0];
                 Puu.Nodes.Add(s);
+                string Tieto = DT.Rows[0][0].ToString();                                //Nimen muodostus alkaa
+                string KurssinNimiJaTyyppi = Tieto.Substring(Tieto.IndexOf("-")+1,Tieto.Length-Tieto.IndexOf("-")-1).TrimStart();
+                string KurssinNimi = "";
+                if (KurssinNimiJaTyyppi.Contains("/"))
+                    KurssinNimi = KurssinNimiJaTyyppi.Substring(0, KurssinNimiJaTyyppi.IndexOf("/"));
+                else
+                    KurssinNimi = KurssinNimiJaTyyppi;
+                Puu.Nodes[Puu.Nodes.Count - 1].ToolTipText = KurssinNimi;               //Nimen lisäys
                 Puu.Nodes[indeksi].ForeColor = Color.DarkRed;
-                for(int i = 0; i<DT.Rows.Count; i++)
+                for (int i = 0; i < DT.Rows.Count; i++)
                 {
-                    Puu.Nodes[indeksi].Nodes.Add(DT.Rows[i][0].ToString());
+                    TreeNode lisattava = new TreeNode(DT.Rows[i][0].ToString());
+                    lisattava.ToolTipText = DT.Rows[i][2].ToString();                   //Päivän lisäys
+                    Puu.Nodes[indeksi].Nodes.Add(lisattava);
                     Puu.Nodes[indeksi].Nodes[i].ForeColor = Color.DarkRed;
                     foreach(string nimi in list)
                         if (nimi.Contains(DT.Rows[i][0].ToString()))
@@ -258,14 +287,14 @@ namespace Lukujärjestys
                             NodeValittu.Nodes[i].ForeColor = Color.DarkGreen;
                         else
                             NodeValittu.Nodes[i].ForeColor = Color.DarkRed;
-                        valitut.Add(NodeValittu.Nodes[i].Text);
+                        valitut.Add(NodeValittu.Nodes[i]);
                     }
                 }
                 else if(it.Text.Equals("Poista"))
                 {
                     parent = NodeValittu.Parent.Text;
                     NodeValittu.Parent.ForeColor = Color.DarkRed;
-                    valitut.Add(NodeValittu.Text);
+                    valitut.Add(NodeValittu);
                     for(int i = 0; i< NodeValittu.Parent.Nodes.Count; i++)
                     {
                         if (NodeValittu.Parent.Nodes[i].ForeColor == Color.DarkGreen)
@@ -280,13 +309,13 @@ namespace Lukujärjestys
                 if (it.Text.Equals("Näytä"))                                            //Näkyväksi asetus, asetetaan teksti vihreäksi
                 {
                     NodeValittu.ForeColor = Color.DarkGreen;
-                    valitut.Add(NodeValittu.Text);
+                    valitut.Add(NodeValittu);
                     parent = NodeValittu.Parent.Text;                                   //Myös parentin tekstin väri muutetaan
                 }
                 else
                 {
                     NodeValittu.ForeColor = Color.DarkRed;                              //Pois näkyvistä, asetetaan teksti punaiseksi
-                    valitut.Add(NodeValittu.Text);
+                    valitut.Add(NodeValittu);
                     parent = NodeValittu.Parent.Text;
                 }
 
@@ -327,7 +356,7 @@ namespace Lukujärjestys
             foreach(TreeNode node in Puu.Nodes)
                 if (koodi.Contains(node.Text))
                     foreach(TreeNode child in node.Nodes)
-                        if (child.Text.Contains(nimi))
+                        if (child.Text.Contains(nimi) && child.ToolTipText.Equals(Paiva))
                         {
                             NodeValittu = child;
                             break;
@@ -338,7 +367,7 @@ namespace Lukujärjestys
             SubMenuClickPuu(it, e);                                                     //Ajetaan funktio ohjelmallisesti
         }
 
-        private void MuutaTieto(string taulu, List<string> rivi, string komento)
+        private void MuutaTieto(string taulu, List<TreeNode> rivi, string komento)
         {
             DataTable valinnat = new DataTable();
             valinnat.Columns.Add("Nimi");
@@ -346,11 +375,17 @@ namespace Lukujärjestys
             valinnat.Columns.Add("Arvo1");
             valinnat.Columns.Add("Arvo2");
 
-            foreach(string s in rivi)
+            foreach(TreeNode node in rivi)
             {
-                AccessHandler.Viesti(komento+" "+s+" taulusta "+taulu);
+                AccessHandler.Viesti(komento+" "+node.Text+" taulusta "+taulu);
                 DataRow dr = valinnat.NewRow();
-                dr.ItemArray = new string[] { "Nimi", "=", s ,""};
+                if (node.Text.Contains("/L"))                                           //Luento /L
+                {
+                    dr.ItemArray = new string[] { "Nimi", "=", node.Text, "" };
+                    valinnat.Rows.Add(new string[] { "Paiva", "=", node.ToolTipText }); //Luentojen kohdalla lisätään uusi rivi päivän tarkastusta varten, ilman tätä luentoa ei voi tunnistaa 
+                }
+                else
+                    dr.ItemArray = new string[] { "Nimi", "=", node.Text ,""};
                 valinnat.Rows.Add(dr);
             }
             if (komento.Equals("Näytä"))
@@ -464,105 +499,43 @@ namespace Lukujärjestys
                 int paivaIndeksi = 0;
                 int alkuIndeksi = 0;
                 int loppuIndeksi = 0;
-                switch (paiva)
+
+                for (int i = 1; i < Paivat.Length; i++)
                 {
-                    case "ma":
-                        paivaIndeksi = 1;
+                    if (Paivat[i].Equals(paiva))
+                    {
+                        paivaIndeksi = i;
                         break;
-                    case "ti":
-                        paivaIndeksi = 2;
-                        break;
-                    case "ke":
-                        paivaIndeksi = 3;
-                        break;
-                    case "to":
-                        paivaIndeksi = 4;
-                        break;
-                    case "pe":
-                        paivaIndeksi = 5;
-                        break;                   
+                    }
                 }
-                switch (alkaa)
+
+                for (int i = 0; i < AlkuKello.Length; i++)
                 {
-                    case "8":
-                        alkuIndeksi = 0;
+                    if (AlkuKello[i].Equals(alkaa))
+                    {
+                        alkuIndeksi = i;
                         break;
-                    case "9":
-                        alkuIndeksi = 1;
-                        break;
-                    case "10":
-                        alkuIndeksi = 2;
-                        break;
-                    case "11":
-                        alkuIndeksi = 3;
-                        break;
-                    case "12":
-                        alkuIndeksi = 4;
-                        break;
-                    case "13":
-                        alkuIndeksi = 5;
-                        break;
-                    case "14":
-                        alkuIndeksi = 6;
-                        break;
-                    case "15":
-                        alkuIndeksi = 7;
-                        break;
-                    case "16":
-                        alkuIndeksi = 8;
-                        break;
-                    case "17":
-                        alkuIndeksi = 9;
-                        break;
-                    case "18":
-                        alkuIndeksi = 10;
-                        break;
+                    }
                 }
-                switch (loppuu)
+
+                for (int i = 1; i < LoppuKello.Length; i++)
                 {
-                    case "9":
-                        loppuIndeksi = 1;
+                    if (LoppuKello[i].Equals(loppuu))
+                    {
+                        loppuIndeksi = i+1;
                         break;
-                    case "10":
-                        loppuIndeksi = 2;
-                        break;
-                    case "11":
-                        loppuIndeksi = 3;
-                        break;
-                    case "12":
-                        loppuIndeksi = 4;
-                        break;
-                    case "13":
-                        loppuIndeksi = 5;
-                        break;
-                    case "14":
-                        loppuIndeksi = 6;
-                        break;
-                    case "15":
-                        loppuIndeksi = 7;
-                        break;
-                    case "16":
-                        loppuIndeksi = 8;
-                        break;
-                    case "17":
-                        loppuIndeksi = 9;
-                        break;
-                    case "18":
-                        loppuIndeksi = 10;
-                        break;
-                    case "19":
-                        loppuIndeksi = 11;
-                        break;
-                    case "20":
-                        loppuIndeksi = 12;
-                        break;
+                    }
                 }
+
                 for(int i = alkuIndeksi; i < loppuIndeksi; i++)
                 {
                     DataRow dataR = Lukujarjestys.NewRow();
-                    Lukujarjestys.Rows[i][paivaIndeksi] = Lukujarjestys.Rows[i][paivaIndeksi].ToString() + DR[0] + Environment.NewLine + "Sali " + DR[5]+Environment.NewLine;
+                    Lukujarjestys.Rows[i][paivaIndeksi] = Lukujarjestys.Rows[i][paivaIndeksi].ToString() + DR[0] + Environment.NewLine+ "Sali " + DR[5]+Environment.NewLine;
                     if (Regex.Matches(Lukujarjestys.Rows[i][paivaIndeksi].ToString(), "Sali").Count > 1)
+                    {
                         LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.Red;
+                        Paallekkaisia = true;
+                    }
                     else
                         LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.White;
                 }
@@ -601,20 +574,54 @@ namespace Lukujärjestys
             for (int i = 8; i < 21; i++)
             {
                 DataRow dataR = Lukujarjestys.NewRow();
-                dataR.ItemArray = new string[] { i + "-" + (i + 1), "", "", "", "", "" };
+                dataR.ItemArray = new string[] { i + "-" + (i + 1), "", "", "", "", "" };   //"Kello" sarake
                 Lukujarjestys.Rows.Add(dataR);
             }
             LukujarjestysDGV.DataSource = Lukujarjestys;
-            for (int i = 0; i < LukujarjestysDGV.Columns.Count; i++)
-            {
-                LukujarjestysDGV.Columns[i].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
-                LukujarjestysDGV.Columns[i].SortMode = DataGridViewColumnSortMode.NotSortable;
-                if (i != 0)
-                    LukujarjestysDGV.Columns[i].Width = 180;
-                else
-                    LukujarjestysDGV.Columns[i].Width = 35;
-            }
+
+            if (!sovitettu)
+                for (int i = 0; i < LukujarjestysDGV.Columns.Count; i++)
+                {
+                    LukujarjestysDGV.Columns[i].DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                    LukujarjestysDGV.Columns[i].SortMode = DataGridViewColumnSortMode.NotSortable;
+                    if (i != 0)
+                        LukujarjestysDGV.Columns[i].Width = 180;
+                    else
+                        LukujarjestysDGV.Columns[i].Width = 35;
+                }
             LukujarjestysDGV.RowTemplate.Height = 50;
+        }
+
+        private void DGVSovita()
+        {
+            int sarakeLeveys = (int)(LukujarjestysDGV.Width - LukujarjestysDGV.Columns[0].Width - LukujarjestysDGV.RowHeadersWidth) / (LukujarjestysDGV.Columns.Count - 1); //leveys - kello - header
+            for(int i = 0; i < LukujarjestysDGV.Columns.Count; i++)
+            {
+                if (i != 0)
+                    LukujarjestysDGV.Columns[i].Width = sarakeLeveys-1;
+            }
+
+            if (Paallekkaisia)
+            {
+                Dictionary<int, int> dict = new Dictionary<int, int>();
+                for (int i = 0; i < LukujarjestysDGV.Rows.Count; i++)                        //Etsitään päällekkäisiä kursseja
+                {
+                    for (int j = 0; j < LukujarjestysDGV.Columns.Count; j++)
+                    {
+                        string teksti = LukujarjestysDGV.Rows[i].Cells[j].Value.ToString();
+                        Regex reg = new Regex("\n");                                        //Etsitään uudet rivit. Jokainen kurssi vie kaksi riviä
+                        int kursseja = reg.Matches(teksti).Count / 2;                       //Ehden kurssin osuus muodostuu nimestä, salista sekä kahdesta uudesta rivistä
+                        if (kursseja >= 2)
+                        {
+                            dict.Add(i,kursseja);
+                        }
+                    }
+                }
+                foreach(int key in dict.Keys)
+                {
+                    LukujarjestysDGV.Rows[key].Height = dict[key] * 50;
+                }
+            }
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -623,6 +630,8 @@ namespace Lukujärjestys
                 YhdistaTietokanta(Settings.Default["Polku"].ToString());
             else
                 ButtonSelaa_Click(sender, e);
+            TextBoxEtsi.Text = "Kirjoita kurssin tunnus ja paina Enter";
+            TextBoxEtsi.ForeColor = Color.Gray;
         }
 
         private void YhdistaTietokanta(string polku)
@@ -635,7 +644,7 @@ namespace Lukujärjestys
             Settings.Default["Polku"] = polku;
             Settings.Default.Save();
             AccessHandler.Yhdista(polku);
-            AccessHandler.ViestienNaytto(Ulkoiset:true,Sisaiset:false);
+            AccessHandler.ViestienNaytto(Ulkoiset:Ulkoiset,Sisaiset:Sisaiset);
             taulut = AccessHandler.EtsiTaulut();
             taulut.Remove("Lukkari");
             DTC = AccessHandler.HaeTaulut(taulut);
@@ -691,6 +700,10 @@ namespace Lukujärjestys
 
             TextBoxEtsi.Location = new Point(HakuPoint.X, HakuPoint.Y);
 
+            ButtonApu.Location = new Point(splitContainer1.Panel2.Width - 115, ApuPoint.Y);
+            ButtonSelaa.Location = new Point(splitContainer1.Panel2.Width - 86, SelaaPoint.Y);
+            ButtonSovita.Location = new Point(splitContainer1.Panel2.Width - 196, SovitaPoint.Y);
+
             LabelNimi.Location = new Point(splitContainer1.Panel2.Width-88, NimiPoint.Y + yMuutos);
         }
 
@@ -718,6 +731,8 @@ namespace Lukujärjestys
             LabelViikko.Text = "Viikko " + (int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" "))) + 1);
             DGVAsetukset();
             TeeLukujarjestysDT();
+            if (sovitettu)
+                DGVSovita();
         }
 
         private void ButtonEdellinen_Click(object sender, EventArgs e)
@@ -727,6 +742,8 @@ namespace Lukujärjestys
             LabelViikko.Text = "Viikko " + (int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" "))) - 1);
             DGVAsetukset();
             TeeLukujarjestysDT();
+            if (sovitettu)
+                DGVSovita();
         }
 
         private void TextBoxEtsi_KeyDown(object sender, KeyEventArgs e)
@@ -734,13 +751,22 @@ namespace Lukujärjestys
             if (e.KeyCode == Keys.Enter)
             {
                 e.SuppressKeyPress = true;
+                Puu.Select();
                 foreach (TreeNode node in Puu.Nodes)
                 {
-                    Puu.Select();
+
                     AccessHandler.Viesti(node.Text);
-                    if (node.Text.Equals(TextBoxEtsi.Text))
+                    if (node.Text.ToLower().Equals(TextBoxEtsi.Text.ToLower()))
+                    {
                         Puu.SelectedNode = node;
+                        return;
+                    }else if (node.ToolTipText.ToLower().Contains(TextBoxEtsi.Text.ToLower()))
+                    {
+                        Puu.SelectedNode = node;
+                        return;
+                    }
                 }
+                Puu.SelectedNode = null;
             }
         }
 
@@ -792,6 +818,7 @@ namespace Lukujärjestys
             if(e.Button == MouseButtons.Right)
             {
                 ContextMenu cMenuDGV = new ContextMenu();
+                Paiva = Paivat[e.ColumnIndex];
                 string teksti = LukujarjestysDGV.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
                 if (teksti.Length < 1)                                                  //Solussa ei ole tekstiä => poistutaan
                     return;
@@ -819,6 +846,53 @@ namespace Lukujärjestys
         private void LukujarjestysDGV_SelectionChanged(object sender, EventArgs e)
         {
             LukujarjestysDGV.ClearSelection();
+        }
+
+        private void TextBoxEtsi_Enter(object sender, EventArgs e)
+        {
+            if(TextBoxEtsi.ForeColor == Color.Gray)
+            {
+                TextBoxEtsi.Text = "";
+                TextBoxEtsi.ForeColor = Color.Black;
+            }
+        }
+
+        private void ButtonApu_Click(object sender, EventArgs e)
+        {
+            Point DGVLoc = LukujarjestysDGV.FindForm().PointToClient(LukujarjestysDGV.Parent.PointToScreen(LukujarjestysDGV.Location));
+            Point MidDGVLoc = new Point(DGVLoc.X+(int)LukujarjestysDGV.Width/2, (int)LukujarjestysDGV.Height / 2);
+            //verbatim literal @ stringiä voi jatkaa usealle riville
+            tip1.Show(@"Lukujärjestys, tässä näkyy valittujen kurssien aikataulut.
+Kursseja voi poistaa joko luettelosta tai painamalla postettavan kurssin solua hiiren oikealla näppäimellä
+Päällekkäin olevien kurssien solut tulevat näkyviin punaisina.",
+                this, MidDGVLoc);
+
+            tip2.Show(@"Tässä näkyy kaikki Lappeenrannan teknillisen yliopiston sisältämät kurssit.
+Kursseja voi hakea niiden nimellä tai tunnuksella yllä olevalla tekstikentällä.
+Kursseja saa valittua painamalla niiden nimeä hiiren oikealla ja valitsemalla valikosta näytä.
+Kursseja voi poistaa valitsemalla poista. Poista tieto poistaa kurssin tietokannasta.",
+            this, Puu.FindForm().PointToClient(Puu.Parent.PointToScreen(Puu.Location)));
+
+            tip3.Show("Tämä valittuna näet listalla vain valitsemasi kurssit", this, 
+                CheckBoxOmat.FindForm().PointToClient(CheckBoxOmat.Parent.PointToScreen(CheckBoxOmat.Location)));
+        }
+
+        private void ButtonApu_Leave(object sender, EventArgs e)
+        {
+            tip1.Hide(this);
+            tip2.Hide(this);
+            tip3.Hide(this);
+        }
+
+        private void ButtonSovita_Click(object sender, EventArgs e)
+        {
+            if (!sovitettu)
+            {
+                sovitettu = true;
+                DGVSovita();
+            }
+            else
+                sovitettu = false;
         }
     }
 }

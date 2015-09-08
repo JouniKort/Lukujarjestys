@@ -41,6 +41,8 @@
             this.CheckBoxOmat = new System.Windows.Forms.CheckBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.LabelNimi = new System.Windows.Forms.Label();
+            this.ButtonApu = new System.Windows.Forms.Button();
+            this.ButtonSovita = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.LukujarjestysDGV)).BeginInit();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -69,7 +71,7 @@
             // 
             this.LabelViikko.AutoSize = true;
             this.LabelViikko.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LabelViikko.Location = new System.Drawing.Point(152, 1);
+            this.LabelViikko.Location = new System.Drawing.Point(155, 12);
             this.LabelViikko.Name = "LabelViikko";
             this.LabelViikko.Size = new System.Drawing.Size(73, 20);
             this.LabelViikko.TabIndex = 1;
@@ -78,9 +80,9 @@
             // 
             // ButtonEdellinen
             // 
-            this.ButtonEdellinen.Location = new System.Drawing.Point(76, 0);
+            this.ButtonEdellinen.Location = new System.Drawing.Point(79, 13);
             this.ButtonEdellinen.Name = "ButtonEdellinen";
-            this.ButtonEdellinen.Size = new System.Drawing.Size(70, 21);
+            this.ButtonEdellinen.Size = new System.Drawing.Size(70, 22);
             this.ButtonEdellinen.TabIndex = 2;
             this.ButtonEdellinen.Text = "Edellinen";
             this.ButtonEdellinen.UseVisualStyleBackColor = true;
@@ -88,9 +90,9 @@
             // 
             // ButtonSeuraava
             // 
-            this.ButtonSeuraava.Location = new System.Drawing.Point(231, 0);
+            this.ButtonSeuraava.Location = new System.Drawing.Point(234, 13);
             this.ButtonSeuraava.Name = "ButtonSeuraava";
-            this.ButtonSeuraava.Size = new System.Drawing.Size(70, 21);
+            this.ButtonSeuraava.Size = new System.Drawing.Size(70, 22);
             this.ButtonSeuraava.TabIndex = 3;
             this.ButtonSeuraava.Text = "Seuraava";
             this.ButtonSeuraava.UseVisualStyleBackColor = true;
@@ -98,9 +100,9 @@
             // 
             // ButtonPaivita
             // 
-            this.ButtonPaivita.Location = new System.Drawing.Point(3, 0);
+            this.ButtonPaivita.Location = new System.Drawing.Point(6, 13);
             this.ButtonPaivita.Name = "ButtonPaivita";
-            this.ButtonPaivita.Size = new System.Drawing.Size(70, 21);
+            this.ButtonPaivita.Size = new System.Drawing.Size(70, 22);
             this.ButtonPaivita.TabIndex = 5;
             this.ButtonPaivita.Text = "Päivitä";
             this.ButtonPaivita.UseVisualStyleBackColor = true;
@@ -111,37 +113,41 @@
             this.Puu.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right)));
             this.Puu.Location = new System.Drawing.Point(3, 44);
             this.Puu.Name = "Puu";
+            this.Puu.ShowNodeToolTips = true;
             this.Puu.Size = new System.Drawing.Size(210, 533);
             this.Puu.TabIndex = 7;
             this.Puu.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.Puu_NodeMouseClick);
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.ButtonSovita);
+            this.panel1.Controls.Add(this.ButtonApu);
             this.panel1.Controls.Add(this.LabelPaivitys);
             this.panel1.Controls.Add(this.ButtonSeuraava);
             this.panel1.Controls.Add(this.ButtonSelaa);
             this.panel1.Controls.Add(this.LabelViikko);
             this.panel1.Controls.Add(this.ButtonEdellinen);
             this.panel1.Controls.Add(this.ButtonPaivita);
-            this.panel1.Location = new System.Drawing.Point(3, 12);
+            this.panel1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(999, 26);
+            this.panel1.Size = new System.Drawing.Size(1014, 35);
             this.panel1.TabIndex = 8;
             // 
             // LabelPaivitys
             // 
             this.LabelPaivitys.AutoSize = true;
             this.LabelPaivitys.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.LabelPaivitys.Location = new System.Drawing.Point(383, 2);
+            this.LabelPaivitys.Location = new System.Drawing.Point(386, 13);
             this.LabelPaivitys.Name = "LabelPaivitys";
             this.LabelPaivitys.Size = new System.Drawing.Size(0, 20);
             this.LabelPaivitys.TabIndex = 12;
             // 
             // ButtonSelaa
             // 
-            this.ButtonSelaa.Location = new System.Drawing.Point(926, 0);
+            this.ButtonSelaa.Location = new System.Drawing.Point(929, 13);
             this.ButtonSelaa.Name = "ButtonSelaa";
-            this.ButtonSelaa.Size = new System.Drawing.Size(70, 21);
+            this.ButtonSelaa.Size = new System.Drawing.Size(70, 22);
             this.ButtonSelaa.TabIndex = 11;
             this.ButtonSelaa.Text = "Selaa";
             this.ButtonSelaa.UseVisualStyleBackColor = true;
@@ -154,6 +160,7 @@
             this.TextBoxEtsi.Name = "TextBoxEtsi";
             this.TextBoxEtsi.Size = new System.Drawing.Size(210, 20);
             this.TextBoxEtsi.TabIndex = 9;
+            this.TextBoxEtsi.Enter += new System.EventHandler(this.TextBoxEtsi_Enter);
             this.TextBoxEtsi.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBoxEtsi_KeyDown);
             // 
             // CheckBoxOmat
@@ -199,6 +206,28 @@
             this.LabelNimi.TabIndex = 9;
             this.LabelNimi.Text = "Jouni Kortelainen";
             // 
+            // ButtonApu
+            // 
+            this.ButtonApu.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.ButtonApu.Location = new System.Drawing.Point(900, 13);
+            this.ButtonApu.Name = "ButtonApu";
+            this.ButtonApu.Size = new System.Drawing.Size(23, 22);
+            this.ButtonApu.TabIndex = 13;
+            this.ButtonApu.Text = "?";
+            this.ButtonApu.UseVisualStyleBackColor = true;
+            this.ButtonApu.Click += new System.EventHandler(this.ButtonApu_Click);
+            this.ButtonApu.Leave += new System.EventHandler(this.ButtonApu_Leave);
+            // 
+            // ButtonSovita
+            // 
+            this.ButtonSovita.Location = new System.Drawing.Point(819, 13);
+            this.ButtonSovita.Name = "ButtonSovita";
+            this.ButtonSovita.Size = new System.Drawing.Size(75, 22);
+            this.ButtonSovita.TabIndex = 14;
+            this.ButtonSovita.Text = "Sovita solut";
+            this.ButtonSovita.UseVisualStyleBackColor = true;
+            this.ButtonSovita.Click += new System.EventHandler(this.ButtonSovita_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -239,6 +268,8 @@
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.Label LabelPaivitys;
         private System.Windows.Forms.Label LabelNimi;
+        private System.Windows.Forms.Button ButtonApu;
+        private System.Windows.Forms.Button ButtonSovita;
     }
 }
 
