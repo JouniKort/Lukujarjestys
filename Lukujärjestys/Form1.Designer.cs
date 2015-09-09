@@ -35,14 +35,14 @@
             this.ButtonPaivita = new System.Windows.Forms.Button();
             this.Puu = new System.Windows.Forms.TreeView();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.ButtonSovita = new System.Windows.Forms.Button();
+            this.ButtonApu = new System.Windows.Forms.Button();
             this.LabelPaivitys = new System.Windows.Forms.Label();
             this.ButtonSelaa = new System.Windows.Forms.Button();
             this.TextBoxEtsi = new System.Windows.Forms.TextBox();
             this.CheckBoxOmat = new System.Windows.Forms.CheckBox();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.LabelNimi = new System.Windows.Forms.Label();
-            this.ButtonApu = new System.Windows.Forms.Button();
-            this.ButtonSovita = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.LukujarjestysDGV)).BeginInit();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -134,6 +134,28 @@
             this.panel1.Size = new System.Drawing.Size(1014, 35);
             this.panel1.TabIndex = 8;
             // 
+            // ButtonSovita
+            // 
+            this.ButtonSovita.Location = new System.Drawing.Point(819, 13);
+            this.ButtonSovita.Name = "ButtonSovita";
+            this.ButtonSovita.Size = new System.Drawing.Size(75, 22);
+            this.ButtonSovita.TabIndex = 14;
+            this.ButtonSovita.Text = "Sovita solut";
+            this.ButtonSovita.UseVisualStyleBackColor = true;
+            this.ButtonSovita.Click += new System.EventHandler(this.ButtonSovita_Click);
+            // 
+            // ButtonApu
+            // 
+            this.ButtonApu.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
+            this.ButtonApu.Location = new System.Drawing.Point(900, 13);
+            this.ButtonApu.Name = "ButtonApu";
+            this.ButtonApu.Size = new System.Drawing.Size(23, 22);
+            this.ButtonApu.TabIndex = 13;
+            this.ButtonApu.Text = "?";
+            this.ButtonApu.UseVisualStyleBackColor = true;
+            this.ButtonApu.Click += new System.EventHandler(this.ButtonApu_Click);
+            this.ButtonApu.Leave += new System.EventHandler(this.ButtonApu_Leave);
+            // 
             // LabelPaivitys
             // 
             this.LabelPaivitys.AutoSize = true;
@@ -205,28 +227,6 @@
             this.LabelNimi.Size = new System.Drawing.Size(75, 12);
             this.LabelNimi.TabIndex = 9;
             this.LabelNimi.Text = "Jouni Kortelainen";
-            // 
-            // ButtonApu
-            // 
-            this.ButtonApu.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
-            this.ButtonApu.Location = new System.Drawing.Point(900, 13);
-            this.ButtonApu.Name = "ButtonApu";
-            this.ButtonApu.Size = new System.Drawing.Size(23, 22);
-            this.ButtonApu.TabIndex = 13;
-            this.ButtonApu.Text = "?";
-            this.ButtonApu.UseVisualStyleBackColor = true;
-            this.ButtonApu.Click += new System.EventHandler(this.ButtonApu_Click);
-            this.ButtonApu.Leave += new System.EventHandler(this.ButtonApu_Leave);
-            // 
-            // ButtonSovita
-            // 
-            this.ButtonSovita.Location = new System.Drawing.Point(819, 13);
-            this.ButtonSovita.Name = "ButtonSovita";
-            this.ButtonSovita.Size = new System.Drawing.Size(75, 22);
-            this.ButtonSovita.TabIndex = 14;
-            this.ButtonSovita.Text = "Sovita solut";
-            this.ButtonSovita.UseVisualStyleBackColor = true;
-            this.ButtonSovita.Click += new System.EventHandler(this.ButtonSovita_Click);
             // 
             // Form1
             // 

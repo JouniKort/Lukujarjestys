@@ -626,19 +626,80 @@ namespace Lukujärjestys
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            if (Settings.Default["Polku"].ToString().Length > 5)
-                YhdistaTietokanta(Settings.Default["Polku"].ToString());
-            else
-                ButtonSelaa_Click(sender, e);
+            EtsiTietokanta();
+
             TextBoxEtsi.Text = "Kirjoita kurssin tunnus ja paina Enter";
             TextBoxEtsi.ForeColor = Color.Gray;
+        }
+
+        private void EtsiTietokanta()
+        {
+            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb"))
+            {
+                YhdistaTietokanta(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb");
+                MessageBox.Show(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb", "!", MessageBoxButtons.OK);
+                return;
+            }
+
+            string polku = "";
+            try
+            {
+                string ExeTiedosto = Environment.GetCommandLineArgs()[0];                                   //Exe:n sijainti
+                for (int i = 0; i < Regex.Matches(ExeTiedosto,@"\\").Count; i++)                            //Etsitään tietostoa korkeammista kansioista
+                {
+                    if (Path.GetFileName(ExeTiedosto).Contains("Program Files"))
+                        break;
+                    int indeksi = 0;
+                    indeksi = Regex.Match(ExeTiedosto, @"\\", options: RegexOptions.RightToLeft).Index;     // \:n viimeinen indeksi
+                    string[] Tiedostot = Directory.GetFiles(Path.GetDirectoryName(ExeTiedosto));            //Haetaan kansion tiedosto
+                    string[] Kansiot = Directory.GetDirectories(Path.GetDirectoryName(ExeTiedosto));        //Haetaan kansion kansiot
+                    foreach (string kansio in Kansiot)                                                      //Käydään kansiot läpi
+                    {
+                        if (Path.GetFileName(kansio).Equals("Setup"))                                       //Jos kansion nimi on Setup sen sisältö tarkastetaan
+                        {
+                            string[] SetupTiedostot = Directory.GetFiles(kansio);                           //Setup kansion tiedostot
+                            foreach (string tiedosto in SetupTiedostot)                                     //Käydään tiedostot läpi
+                            {
+                                if (tiedosto.Contains("Lukujärjestys.mdb"))                                 //Jos tiedoston nimi on haluttu, valitaan se poluksi
+                                {
+                                    polku = tiedosto;
+                                    AccessHandler.Viesti(tiedosto);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    if (polku.Equals(""))                                                                   //Jos tiedostoa ei olla löydetty Setupista, käydään muut kansiot läpi
+                        foreach (string tiedosto in Tiedostot)                                              //Käydään tiedostot läpi
+                        {
+                            if (tiedosto.Contains("Lukujärjestys.mdb"))                                     //Jos tiedoston nimi on haluttu, valitaan se poluksi
+                            {
+                                polku = tiedosto;
+                                AccessHandler.Viesti("Tietokanta löydetty! " + tiedosto);
+                                break;
+                            }
+                        }
+                    ExeTiedosto = ExeTiedosto.Substring(0, indeksi);                                        //Leikataan polusta yksi tiedosto/kansio pois
+                }
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.InnerException.ToString(), "Virhe", MessageBoxButtons.OK);
+            }
+            if (File.Exists(polku))
+            {
+                YhdistaTietokanta(polku);
+                return;
+            }
+            MessageBox.Show("Tietokantaa ei löydetty", "!", MessageBoxButtons.OK);
         }
 
         private void YhdistaTietokanta(string polku)
         {
             if (!File.Exists(polku))
             {
-                MessageBox.Show("Määriteltyä tietokantaa ei löytynyt, käytä selausta", "Virhe", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Tietokantaa ei löytynyt, käytä selausta", "Virhe", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
             Settings.Default["Polku"] = polku;
