@@ -46,12 +46,6 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_64D338F72452404E3B6A8298C6923FBB"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_9378A258258B4F8AA47C826278E6EE1D"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -65,6 +59,12 @@
         {
         "MsmKey" = "8:_UNDEFINED"
         "OwnerKey" = "8:_4A219772DB8193797A5E73F1843155BC"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_64D338F72452404E3B6A8298C6923FBB"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -85,6 +85,14 @@
         "PrivateKeyFile" = "8:"
         "TimeStampServer" = "8:"
         "InstallerBootstrapper" = "3:2"
+            "BootstrapperCfg:{63ACBE69-63AA-4F98-B2B6-99F9E24495F2}"
+            {
+            "Enabled" = "11:TRUE"
+            "PromptEnabled" = "11:TRUE"
+            "PrerequisitesLocation" = "2:1"
+            "Url" = "8:"
+            "ComponentsUrl" = "8:"
+            }
         }
         "Release"
         {
@@ -342,15 +350,15 @@
         {
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Lukkari"
-        "ProductCode" = "8:{4713F903-95E0-43FE-B5CF-B3F27CE8160D}"
-        "PackageCode" = "8:{0986E698-042E-4A6C-904D-8D1054F4D1F0}"
+        "ProductCode" = "8:{73BB7C28-E2A5-470B-8F6B-8F27B48E0706}"
+        "PackageCode" = "8:{37113866-D10E-4AB6-ABC3-DCB657DDDD2F}"
         "UpgradeCode" = "8:{1CB7D7E6-B16F-46A4-BE07-B8D68525C3F9}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
         "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
         "InstallAllUsers" = "11:FALSE"
-        "ProductVersion" = "8:1.2.7"
+        "ProductVersion" = "8:1.3.2"
         "Manufacturer" = "8:JouniKort"
         "ARPHELPTELEPHONE" = "8:"
         "ARPHELPLINK" = "8:"
@@ -920,7 +928,7 @@
             }
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_9378A258258B4F8AA47C826278E6EE1D"
             {
-            "SourcePath" = "8:..\\Lukujärjestys\\obj\\Debug\\Lukujärjestys.exe"
+            "SourcePath" = "8:..\\Lukujärjestys\\obj\\Release\\Lukujärjestys.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_C3263F4C8BD7419A8F16DF3DA21555BA"

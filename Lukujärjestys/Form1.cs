@@ -29,6 +29,7 @@ namespace Lukujärjestys
         private bool Ulkoiset = true;
 
         private List<TreeNode> valitut = new List<TreeNode>();
+        private Dictionary<string, int> ValitutVarit = new Dictionary<string, int>();
         private List<string> taulut;
         private List<string> sarakkeet;
         private List<string> lukkariSarakkeet = new List<string>();
@@ -37,6 +38,8 @@ namespace Lukujärjestys
         private string[] Paivat = { "", "ma", "ti", "ke", "to", "pe" };                 //Tyhjä kelloa verten
         private string[] AlkuKello = { "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18" };
         private string[] LoppuKello = {  "9", "10", "11", "12", "13", "14", "15", "16", "17", "18","19","20" };
+        private Color[] Varit = { Color.Tomato, Color.LightGreen, Color.Aqua, Color.LightPink, Color.LightSkyBlue, Color.LightGray, Color.DarkGoldenrod,
+            Color.PapayaWhip, Color.Orange, Color.Olive, Color.Orchid, Color.PeachPuff,Color.MistyRose, Color.MintCream,Color.Ivory};
 
         private DataTable Lukujarjestys = new DataTable();
         private DataTable lukujarjestysRAW;
@@ -57,6 +60,7 @@ namespace Lukujärjestys
         private Point SovitaPoint;
 
         private int Panel2Leveys;
+        private int VariIndeksi = 0;
 
         private ToolTip tip1 = new ToolTip();
         private ToolTip tip2 = new ToolTip();
@@ -109,6 +113,17 @@ namespace Lukujärjestys
             URLit.Add("https://uni.lut.fi/c/document_library/get_file?uuid=5bead19f-eae4-418b-b7c7-902bf78cef46&groupId=10304");
         }
 
+        private void LisaaVarit(string nimi)
+        {
+            if (!ValitutVarit.ContainsKey(nimi))
+            {
+                if (VariIndeksi == Varit.Length)
+                    VariIndeksi = 0;
+                ValitutVarit.Add(nimi, VariIndeksi);
+                VariIndeksi++;
+            }
+        }
+
         private void ButtonPaivita_Click(object sender, EventArgs e)
         {
             var vastaus = MessageBox.Show("Oletko varma että tahdot päivittää tietokannan?", "Päivitys", MessageBoxButtons.YesNo);
@@ -128,12 +143,6 @@ namespace Lukujärjestys
                 HtmlWeb hw = new HtmlWeb();
 
                 HtmlDocument doc = hw.Load(url);
-
-                //Regex.Matches(teksti.InnerText, @"[a-zA-Z]").Count > 50 tekstin kirjaimet
-                //if (row.SelectNodes("th|td")[0].InnerText == string.Empty)
-                //    continue;
-                //string nimi = row.SelectNodes("th|td")[0].InnerText;
-                //string koodi = nimi.Split('-')[0].TrimEnd();
 
                 foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
                 {
@@ -474,7 +483,6 @@ namespace Lukujärjestys
                     }
                 }
             }
-
         }
 
         private bool Valilta(string alku, string loppu)
@@ -492,10 +500,16 @@ namespace Lukujärjestys
         {
             foreach(DataRow DR in LukujarjestysViikko.Rows)
             {
+                string kurssi = DR[0].ToString();
                 string paiva = DR[2].ToString();
                 string alkaa = DR[3].ToString();
                 string loppuu = DR[4].ToString();
+
                 AccessHandler.Viesti("Päivä " + paiva + " klo " + alkaa + "-" + loppuu);
+
+                string koodi = kurssi.Split('-')[0].TrimEnd();
+                LisaaVarit(koodi);
+
                 int paivaIndeksi = 0;
                 int alkuIndeksi = 0;
                 int loppuIndeksi = 0;
@@ -537,7 +551,10 @@ namespace Lukujärjestys
                         Paallekkaisia = true;
                     }
                     else
-                        LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.White;
+                    {
+                        //LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.White;
+                        LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Varit[ValitutVarit[koodi]];
+                    }
                 }
             }
         }
@@ -634,14 +651,13 @@ namespace Lukujärjestys
 
         private void EtsiTietokanta()
         {
-            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb"))
+            if (File.Exists(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb")) //Asennetun ohjelman käyttämä koodi
             {
                 YhdistaTietokanta(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb");
-                MessageBox.Show(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\Lukkari\\Lukujärjestys.mdb", "!", MessageBoxButtons.OK);
                 return;
             }
 
-            string polku = "";
+            string polku = "";                                                                              //Testissä käytetty koodi
             try
             {
                 string ExeTiedosto = Environment.GetCommandLineArgs()[0];                                   //Exe:n sijainti
