@@ -49,15 +49,13 @@ namespace Lukujärjestys
         private Point LukuPoint;
         private Size LukuSize;
         private Size PuuSize;
-        private Point PanelPoint;
         private Size EtsiSize;
         private Point OmatPoint;
-        private Point SelaaPoint;
         private Point PuuPoint;
         private Point HakuPoint;
         private Point NimiPoint;
         private Point ApuPoint;
-        private Point SovitaPoint;
+        private Point PoistaPoint;
 
         private int Panel2Leveys;
         private int VariIndeksi = 0;
@@ -85,16 +83,14 @@ namespace Lukujärjestys
             LukuPoint = LukujarjestysDGV.Location;
             LukuSize = LukujarjestysDGV.Size;
             PuuSize = Puu.Size;
-            PanelPoint = panel1.Location;
             EtsiSize = TextBoxEtsi.Size;
             OmatPoint = CheckBoxOmat.Location;
-            SelaaPoint = ButtonSelaa.Location;
             PuuPoint = Puu.Location;
             HakuPoint = TextBoxEtsi.Location;
             Panel2Leveys = splitContainer1.Panel2.Width;
             NimiPoint = LabelNimi.Location;
             ApuPoint = ButtonApu.Location;
-            SovitaPoint = ButtonSovita.Location;
+            PoistaPoint = ButtonPoistaKaikki.Location;
         }
 
         private void LisaaURLit()
@@ -129,8 +125,9 @@ namespace Lukujärjestys
             var vastaus = MessageBox.Show("Oletko varma että tahdot päivittää tietokannan?", "Päivitys", MessageBoxButtons.YesNo);
             if (vastaus == DialogResult.No)
                 return;
-            LabelPaivitys.Text = "Odota, päivitys meneillään... 0/12";
-            LabelPaivitys.ForeColor = Color.DarkRed;
+            toolStripProgressBar1.Value = 0;
+            //LabelPaivitys.Text = "Odota, päivitys meneillään... 0/12";
+            //LabelPaivitys.ForeColor = Color.DarkRed;
 
             string koodi = "";
             string nimi;
@@ -190,12 +187,13 @@ namespace Lukujärjestys
                             }
                 }
                 paivitettyja++;
-                LabelPaivitys.Text = "Odota, päivitys meneillään... "+paivitettyja+"/12";
+                toolStripProgressBar1.Value = paivitettyja;
+                //LabelPaivitys.Text = "Odota, päivitys meneillään... "+paivitettyja+"/12";
             }
 
             TeePuu();
-            LabelPaivitys.Text = "Päivitys onnistui";
-            LabelPaivitys.ForeColor = Color.DarkGreen;
+            //LabelPaivitys.Text = "Päivitys onnistui";
+            //LabelPaivitys.ForeColor = Color.DarkGreen;
         }
 
         private void uusiTaulu(string koodi)
@@ -247,9 +245,17 @@ namespace Lukujärjestys
                 for (int i = 0; i < DT.Rows.Count; i++)
                 {
                     TreeNode lisattava = new TreeNode(DT.Rows[i][0].ToString());
-                    lisattava.ToolTipText = DT.Rows[i][2].ToString();                   //Päivän lisäys
                     Puu.Nodes[indeksi].Nodes.Add(lisattava);
                     Puu.Nodes[indeksi].Nodes[i].ForeColor = Color.DarkRed;
+
+                    if (DT.Rows[i][2].ToString().Equals("&nbsp;"))
+                    {                        //Tyhjä solu Unin taulukossa
+                        lisattava.ToolTipText = "Tälle tunnille ei olla annettu päivää";    //Luennolla/harjoituksella ei ole päivää
+                        lisattava.ForeColor = Color.DarkBlue;                               //Jos luennolle/harjoitukselle ei olla annettu päivää se näkyy sinisenä
+                    }
+                    else
+                        lisattava.ToolTipText = DT.Rows[i][2].ToString();                   //Päivän lisäys
+
                     foreach(string nimi in list)
                         if (nimi.Contains(DT.Rows[i][0].ToString()))
                         {
@@ -547,7 +553,7 @@ namespace Lukujärjestys
                     Lukujarjestys.Rows[i][paivaIndeksi] = Lukujarjestys.Rows[i][paivaIndeksi].ToString() + DR[0] + Environment.NewLine+ "Sali " + DR[5]+Environment.NewLine;
                     if (Regex.Matches(Lukujarjestys.Rows[i][paivaIndeksi].ToString(), "Sali").Count > 1)
                     {
-                        LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.Red;
+                        LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.White;
                         Paallekkaisia = true;
                     }
                     else
@@ -769,19 +775,19 @@ namespace Lukujärjestys
             int xMuutos = this.Width - frameSize.Width;
             int yMuutos = this.Height - frameSize.Height;
 
-            panel1.Location = new Point(PanelPoint.X, PanelPoint.Y);
+            ButtonApu_Leave(sender, e);
+
             CheckBoxOmat.Location = new Point(OmatPoint.X, OmatPoint.Y + yMuutos);
 
             Puu.Height = PuuSize.Height + yMuutos;
             Puu.Location = new Point(PuuPoint.X ,PuuPoint.Y);
+            Puu.Width = splitContainer1.Panel1.Width - 6;
 
             TextBoxEtsi.Location = new Point(HakuPoint.X, HakuPoint.Y);
 
-            ButtonApu.Location = new Point(splitContainer1.Panel2.Width - 115, ApuPoint.Y);
-            ButtonSelaa.Location = new Point(splitContainer1.Panel2.Width - 86, SelaaPoint.Y);
-            ButtonSovita.Location = new Point(splitContainer1.Panel2.Width - 196, SovitaPoint.Y);
+            ButtonApu.Location = new Point(splitContainer1.Panel2.Width+splitContainer1.Panel1.Width-30, ApuPoint.Y);
 
-            LabelNimi.Location = new Point(splitContainer1.Panel2.Width-88, NimiPoint.Y + yMuutos);
+            LabelNimi.Location = new Point(splitContainer1.Panel1.Width+500, NimiPoint.Y + yMuutos);
         }
 
         private void Puu_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -940,17 +946,20 @@ namespace Lukujärjestys
             Point MidDGVLoc = new Point(DGVLoc.X+(int)LukujarjestysDGV.Width/2, (int)LukujarjestysDGV.Height / 2);
             //verbatim literal @ stringiä voi jatkaa usealle riville
             tip1.Show(@"Lukujärjestys, tässä näkyy valittujen kurssien aikataulut.
-Kursseja voi poistaa joko luettelosta tai painamalla postettavan kurssin solua hiiren oikealla näppäimellä
-Päällekkäin olevien kurssien solut tulevat näkyviin punaisina.",
+Kursseja voi poistaa joko luettelosta tai painamalla postettavan kurssin solua hiiren oikealla näppäimellä.
+Päällekkäin olevien kurssien solut tulevat näkyviin valkoisina.",
                 this, MidDGVLoc);
 
             tip2.Show(@"Tässä näkyy kaikki Lappeenrannan teknillisen yliopiston sisältämät kurssit.
 Kursseja voi hakea niiden nimellä tai tunnuksella yllä olevalla tekstikentällä.
 Kursseja saa valittua painamalla niiden nimeä hiiren oikealla ja valitsemalla valikosta näytä.
-Kursseja voi poistaa valitsemalla poista. Poista tieto poistaa kurssin tietokannasta.",
+Kursseja voi poistaa valitsemalla poista. Poista tieto poistaa kurssin tietokannasta.
+Punainen = Kurssilta ei ole valittu mitään, luentoa/harjoitusta ei ole valittu.
+Vihreä = kurssilta on valittu jotain, luento/harjoitus on valittu.
+Sininen = luennolla/harjoituksella ei ole päivää Unin taulukoissa.",
             this, Puu.FindForm().PointToClient(Puu.Parent.PointToScreen(Puu.Location)));
 
-            tip3.Show("Tämä valittuna näet listalla vain valitsemasi kurssit", this, 
+            tip3.Show("Tämä valittuna näet listalla vain valitsemasi kurssit.", this, 
                 CheckBoxOmat.FindForm().PointToClient(CheckBoxOmat.Parent.PointToScreen(CheckBoxOmat.Location)));
         }
 
@@ -965,11 +974,56 @@ Kursseja voi poistaa valitsemalla poista. Poista tieto poistaa kurssin tietokann
         {
             if (!sovitettu)
             {
+                toolStripButton4.Checked = true;
                 sovitettu = true;
                 DGVSovita();
             }
             else
+            {
                 sovitettu = false;
+                toolStripButton4.Checked = false;
+            }
+
+        }
+
+        private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            Form1_Resize(sender, e);
+        }
+
+        private void ButtonKuva_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            fbd.Description = "Valitse tallennettavan kuvan sijainti";
+            var res = fbd.ShowDialog();
+            if(res == DialogResult.OK)
+            {
+                Bitmap b = new Bitmap(LukujarjestysDGV.Width, LukujarjestysDGV.Height);
+                LukujarjestysDGV.DrawToBitmap(b, new Rectangle(0,0,LukujarjestysDGV.Width, LukujarjestysDGV.Height));
+                b.Save(fbd.SelectedPath + "\\Lukujarjestys.jpg");
+                MessageBox.Show(@"Muista että lukujärjestys voi vaihdella viikoittain!
+Kuva tallennettu, " + fbd.SelectedPath + "\\Lukujarjestys.jpg", "Kuva tallennettu", MessageBoxButtons.OK);
+            }
+        }
+
+        private void Form1_Move(object sender, EventArgs e)
+        {
+            tip1.Hide(this);
+            tip2.Hide(this);
+            tip3.Hide(this);
+        }
+
+        private void ButtonPoistaKaikki_Click(object sender, EventArgs e)
+        {
+            var vastaus = MessageBox.Show("Poistetaanko kaikki valitut kurssit?", "Taulun tyhjennys", MessageBoxButtons.YesNo);
+            if(vastaus == DialogResult.Yes)
+            {
+                AccessHandler.SQLkomentoTaulu(SQLRakentaja.DELETE("Lukkari"));
+                TeePuu();
+                DGVAsetukset();
+                TeeLukujarjestysRAW();
+                TeeLukujarjestysDT();
+            }
         }
     }
 }
