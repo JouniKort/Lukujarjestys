@@ -145,8 +145,7 @@
             // 
             // ButtonPoistaKaikki
             // 
-            this.ButtonPoistaKaikki.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.ButtonPoistaKaikki.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.ButtonPoistaKaikki.Location = new System.Drawing.Point(119, 610);
             this.ButtonPoistaKaikki.Name = "ButtonPoistaKaikki";
             this.ButtonPoistaKaikki.Size = new System.Drawing.Size(94, 23);
