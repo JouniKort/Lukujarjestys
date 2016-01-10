@@ -1,17 +1,17 @@
 ﻿using HtmlAgilityPack;
+using Lukujärjestys.Properties;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using AccessHandler = AccessSQL.AccessHandler;
-using SQLRakentaja = AccessSQL.SQLRakentaja;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
-using System.Globalization;
-using System.Text.RegularExpressions;
-using Lukujärjestys.Properties;
-using System.IO;
+using SQLRakentaja = AccessSQL.SQLRakentaja;
 
 namespace Lukujärjestys
 {
@@ -35,9 +35,10 @@ namespace Lukujärjestys
         private List<string> lukkariSarakkeet = new List<string>();
         private List<string> data;
         private List<string> URLit = new List<string>();
-        private string[] Paivat = { "", "ma", "ti", "ke", "to", "pe" };                 //Tyhjä kelloa verten
+        private string[] Paivat = { "", "ma", "ti", "ke", "to", "pe" };                 //Tyhjä kelloa verten (sarake)
         private string[] AlkuKello = { "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18" };
-        private string[] LoppuKello = {  "9", "10", "11", "12", "13", "14", "15", "16", "17", "18","19","20" };
+        private string[] LoppuKello = { "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20" };
+
         private Color[] Varit = { Color.Tomato, Color.LightGreen, Color.Aqua, Color.LightPink, Color.LightSkyBlue, Color.LightGray, Color.DarkGoldenrod,
             Color.PapayaWhip, Color.Orange, Color.Olive, Color.Orchid, Color.PeachPuff,Color.MistyRose, Color.MintCream,Color.Ivory};
 
@@ -131,11 +132,11 @@ namespace Lukujärjestys
 
             string koodi = "";
             string nimi;
-            string[] rivi = {"Nimi","Periodi","Viikko","Paiva","AlkaaKlo","LoppuuKlo","Sali","Huom"};
+            string[] rivi = { "Nimi", "Periodi", "Viikko", "Paiva", "AlkaaKlo", "LoppuuKlo", "Sali", "Huom" };
 
             int paivitettyja = 0;
 
-            foreach(string url in URLit)
+            foreach (string url in URLit)
             {
                 HtmlWeb hw = new HtmlWeb();
 
@@ -144,8 +145,8 @@ namespace Lukujärjestys
                 foreach (HtmlNode table in doc.DocumentNode.SelectNodes("//table"))
                 {
                     bool tauluTehty = false;
-                    if(table.Attributes["Class"].Value.Equals("spreadsheet"))
-                        if(table.SelectNodes("tr") != null)//Yhdessä listassa kurssin tietojen paikalla piste, tämä antaa nullin
+                    if (table.Attributes["Class"].Value.Equals("spreadsheet"))
+                        if (table.SelectNodes("tr") != null)//Yhdessä listassa kurssin tietojen paikalla piste, tämä antaa nullin
                             foreach (HtmlNode row in table.SelectNodes("tr"))
                             {
                                 if (row.SelectNodes("th|td")[0].InnerText == string.Empty)
@@ -175,13 +176,13 @@ namespace Lukujärjestys
                                         indeksi++;
                                     }
                                     kierrokset += 1;
-                                    if(indeksi == 8)
+                                    if (indeksi == 8)
                                     {
                                         uusiTaulu(koodi);
-                                        if(!tauluTehty)
+                                        if (!tauluTehty)
                                             AccessHandler.SQLkomentoTaulu(SQLRakentaja.DELETE(koodi));//Tyhjennetään taulu
                                         tauluTehty = true;
-                                        annaTiedot(koodi,rivi);
+                                        annaTiedot(koodi, rivi);
                                     }
                                 }
                             }
@@ -208,7 +209,7 @@ namespace Lukujärjestys
 
         private void annaTiedot(string koodi, string[] rivi)
         {
-            AccessHandler.SQLkomentoINSERT(sarakkeet,rivi,koodi);
+            AccessHandler.SQLkomentoINSERT(sarakkeet, rivi, koodi);
         }
 
         private void TeePuu()
@@ -227,14 +228,14 @@ namespace Lukujärjestys
             DataTable table = AccessHandler.SQLkomento(SQLRakentaja.SELECT(valitut, "Lukkari"))[0];
             table.Columns[0].Namespace = "Nimi";
             List<string> list = (from row in table.AsEnumerable()
-                              select row.Field<string>("Nimi")).ToList<string>();
+                                 select row.Field<string>("Nimi")).ToList<string>();
 
             foreach (string s in taulut)
             {
                 DataTable DT = AccessHandler.SQLkomento(SQLRakentaja.SELECT(sarake, s))[0];
                 Puu.Nodes.Add(s);
                 string Tieto = DT.Rows[0][0].ToString();                                //Nimen muodostus alkaa
-                string KurssinNimiJaTyyppi = Tieto.Substring(Tieto.IndexOf("-")+1,Tieto.Length-Tieto.IndexOf("-")-1).TrimStart();
+                string KurssinNimiJaTyyppi = Tieto.Substring(Tieto.IndexOf("-") + 1, Tieto.Length - Tieto.IndexOf("-") - 1).TrimStart();
                 string KurssinNimi = "";
                 if (KurssinNimiJaTyyppi.Contains("/"))
                     KurssinNimi = KurssinNimiJaTyyppi.Substring(0, KurssinNimiJaTyyppi.IndexOf("/"));
@@ -256,7 +257,7 @@ namespace Lukujärjestys
                     else
                         lisattava.ToolTipText = DT.Rows[i][2].ToString();                   //Päivän lisäys
 
-                    foreach(string nimi in list)
+                    foreach (string nimi in list)
                         if (nimi.Contains(DT.Rows[i][0].ToString()))
                         {
                             Puu.Nodes[indeksi].Nodes[i].ForeColor = Color.DarkGreen;
@@ -288,7 +289,7 @@ namespace Lukujärjestys
         {
             valitut.Clear();
             MenuItem it = sender as MenuItem;
-            AccessHandler.Viesti("SubMenuClick "+it.Text+" "+NodeNimi);
+            AccessHandler.Viesti("SubMenuClick " + it.Text + " " + NodeNimi);
             string parent = "";
 
             if (NodeParent)                                                             //Parentin nodejen muutto
@@ -296,7 +297,7 @@ namespace Lukujärjestys
                 if (NodeParent && !it.Text.Equals("Poista tieto"))                      //Jos node on Parent, muutetaan kaikkien nodejen värit
                 {
                     parent = NodeValittu.Text;
-                    for(int i = 0; i<NodeValittu.Nodes.Count; i++)
+                    for (int i = 0; i < NodeValittu.Nodes.Count; i++)
                     {
                         if (it.Text.Equals("Näytä"))
                             NodeValittu.Nodes[i].ForeColor = Color.DarkGreen;
@@ -305,12 +306,12 @@ namespace Lukujärjestys
                         valitut.Add(NodeValittu.Nodes[i]);
                     }
                 }
-                else if(it.Text.Equals("Poista"))
+                else if (it.Text.Equals("Poista"))
                 {
                     parent = NodeValittu.Parent.Text;
                     NodeValittu.Parent.ForeColor = Color.DarkRed;
                     valitut.Add(NodeValittu);
-                    for(int i = 0; i< NodeValittu.Parent.Nodes.Count; i++)
+                    for (int i = 0; i < NodeValittu.Parent.Nodes.Count; i++)
                     {
                         if (NodeValittu.Parent.Nodes[i].ForeColor == Color.DarkGreen)
                         {
@@ -333,10 +334,9 @@ namespace Lukujärjestys
                     valitut.Add(NodeValittu);
                     parent = NodeValittu.Parent.Text;
                 }
-
             }
 
-            if(NodeParent && it.Text.Equals("Poista tieto"))
+            if (NodeParent && it.Text.Equals("Poista tieto"))
             {
                 var vastaus = MessageBox.Show("Oletko varma että tahdot poistaa taulun tietokannasta?", "Huom", MessageBoxButtons.YesNo);
                 if (vastaus == DialogResult.No)
@@ -345,11 +345,11 @@ namespace Lukujärjestys
                 taulut.Remove(NodeNimi);
                 TeePuu();
             }
-            else if(!NodeParent && it.Text.Equals("Poista tieto"))
+            else if (!NodeParent && it.Text.Equals("Poista tieto"))
             {
                 MessageBox.Show("Yksittäisiä tietueita ei voi poistaa.\nPoista ylin solmu!", "Huom", MessageBoxButtons.OK);
             }
-            if(valitut.Count > 0)
+            if (valitut.Count > 0)
             {
                 MuutaTieto(parent, valitut, it.Text);
                 DGVAsetukset();
@@ -368,9 +368,9 @@ namespace Lukujärjestys
 
             NodeParent = false;                                                         //Node on aina Child
             NodeValittu = null;                                                         //Etsitään tietoa vastaava solmu puusta
-            foreach(TreeNode node in Puu.Nodes)
+            foreach (TreeNode node in Puu.Nodes)
                 if (koodi.Contains(node.Text))
-                    foreach(TreeNode child in node.Nodes)
+                    foreach (TreeNode child in node.Nodes)
                         if (child.Text.Contains(nimi) && child.ToolTipText.Equals(Paiva))
                         {
                             NodeValittu = child;
@@ -390,27 +390,27 @@ namespace Lukujärjestys
             valinnat.Columns.Add("Arvo1");
             valinnat.Columns.Add("Arvo2");
 
-            foreach(TreeNode node in rivi)
+            foreach (TreeNode node in rivi)
             {
-                AccessHandler.Viesti(komento+" "+node.Text+" taulusta "+taulu);
+                AccessHandler.Viesti(komento + " " + node.Text + " taulusta " + taulu);
                 DataRow dr = valinnat.NewRow();
                 if (node.Text.Contains("/L"))                                           //Luento /L
                 {
                     dr.ItemArray = new string[] { "Nimi", "=", node.Text, "" };
-                    valinnat.Rows.Add(new string[] { "Paiva", "=", node.ToolTipText }); //Luentojen kohdalla lisätään uusi rivi päivän tarkastusta varten, ilman tätä luentoa ei voi tunnistaa 
+                    valinnat.Rows.Add(new string[] { "Paiva", "=", node.ToolTipText }); //Luentojen kohdalla lisätään uusi rivi päivän tarkastusta varten, ilman tätä luentoa ei voi tunnistaa (koska sama nimi)
                 }
                 else
-                    dr.ItemArray = new string[] { "Nimi", "=", node.Text ,""};
+                    dr.ItemArray = new string[] { "Nimi", "=", node.Text, "" };
                 valinnat.Rows.Add(dr);
             }
             if (komento.Equals("Näytä"))
             {
                 DataTable DT = AccessHandler.SQLkomento(SQLRakentaja.WHERE_AND_OR(valinnat, lukkariSarakkeet, taulu))[0];
-                for(int i = 0; i<DT.Rows.Count; i++)
-                    AccessHandler.SQLkomentoINSERT(lukkariSarakkeet, new string[] { DT.Rows[i][0].ToString(), DT.Rows[i][1].ToString(), DT.Rows[i][2].ToString(), DT.Rows[i][3].ToString(), DT.Rows[i][4].ToString(), DT.Rows[i][5].ToString() }, "Lukkari");
-            }else if (komento.Equals("Poista"))
+                AccessHandler.InsertDataTable(DT, lukkariSarakkeet, "Lukkari");
+            }
+            else if (komento.Equals("Poista"))
             {
-                AccessHandler.SQLkomentoTaulu(SQLRakentaja.WHERE_AND_OR(valinnat, lukkariSarakkeet, taulu,"DELETE FROM Lukkari WHERE "));
+                AccessHandler.SQLkomentoTaulu(SQLRakentaja.WHERE_AND_OR(valinnat, lukkariSarakkeet, taulu, "DELETE FROM Lukkari WHERE "));
             }
         }
 
@@ -429,7 +429,7 @@ namespace Lukujärjestys
 
             TarkastaViikko();
             AccessHandler.Viesti("Viikolla kursseja: " + LukujarjestysViikko.Rows.Count);
-            if(LukujarjestysViikko.Rows.Count > 0)
+            if (LukujarjestysViikko.Rows.Count > 0)
             {
                 PaivaJaAika();
             }
@@ -494,7 +494,7 @@ namespace Lukujärjestys
         private bool Valilta(string alku, string loppu)
         {
             int viikko = int.Parse(LabelViikko.Text.Substring(LabelViikko.Text.IndexOf(" ")));
-            for(int i = int.Parse(alku); i<= int.Parse(loppu); i++)
+            for (int i = int.Parse(alku); i <= int.Parse(loppu); i++)
             {
                 if (i == viikko)
                     return true;
@@ -504,14 +504,14 @@ namespace Lukujärjestys
 
         private void PaivaJaAika()
         {
-            foreach(DataRow DR in LukujarjestysViikko.Rows)
+            foreach (DataRow DR in LukujarjestysViikko.Rows)
             {
                 string kurssi = DR[0].ToString();
                 string paiva = DR[2].ToString();
                 string alkaa = DR[3].ToString();
                 string loppuu = DR[4].ToString();
 
-                AccessHandler.Viesti("Päivä " + paiva + " klo " + alkaa + "-" + loppuu);
+                AccessHandler.Viesti("Päivä: " + paiva + " (" + paiva + ") klo: " + alkaa + "-" + loppuu + "   Kurssi:" + kurssi.Split('-')[1]);
 
                 string koodi = kurssi.Split('-')[0].TrimEnd();
                 LisaaVarit(koodi);
@@ -542,15 +542,15 @@ namespace Lukujärjestys
                 {
                     if (LoppuKello[i].Equals(loppuu))
                     {
-                        loppuIndeksi = i+1;
+                        loppuIndeksi = i + 1;
                         break;
                     }
                 }
 
-                for(int i = alkuIndeksi; i < loppuIndeksi; i++)
+                for (int i = alkuIndeksi; i < loppuIndeksi; i++)
                 {
                     DataRow dataR = Lukujarjestys.NewRow();
-                    Lukujarjestys.Rows[i][paivaIndeksi] = Lukujarjestys.Rows[i][paivaIndeksi].ToString() + DR[0] + Environment.NewLine+ "Sali " + DR[5]+Environment.NewLine;
+                    Lukujarjestys.Rows[i][paivaIndeksi] = Lukujarjestys.Rows[i][paivaIndeksi].ToString() + DR[0] + Environment.NewLine + "Sali " + DR[5] + Environment.NewLine;
                     if (Regex.Matches(Lukujarjestys.Rows[i][paivaIndeksi].ToString(), "Sali").Count > 1)
                     {
                         LukujarjestysDGV.Rows[i].Cells[paivaIndeksi].Style.BackColor = Color.White;
@@ -618,10 +618,10 @@ namespace Lukujärjestys
         private void DGVSovita()
         {
             int sarakeLeveys = (int)(LukujarjestysDGV.Width - LukujarjestysDGV.Columns[0].Width - LukujarjestysDGV.RowHeadersWidth) / (LukujarjestysDGV.Columns.Count - 1); //leveys - kello - header
-            for(int i = 0; i < LukujarjestysDGV.Columns.Count; i++)
+            for (int i = 0; i < LukujarjestysDGV.Columns.Count; i++)
             {
                 if (i != 0)
-                    LukujarjestysDGV.Columns[i].Width = sarakeLeveys-1;
+                    LukujarjestysDGV.Columns[i].Width = sarakeLeveys - 1;
             }
 
             if (Paallekkaisia)
@@ -636,11 +636,11 @@ namespace Lukujärjestys
                         int kursseja = reg.Matches(teksti).Count / 2;                       //Ehden kurssin osuus muodostuu nimestä, salista sekä kahdesta uudesta rivistä
                         if (kursseja >= 2)
                         {
-                            dict.Add(i,kursseja);
+                            dict.Add(i, kursseja);
                         }
                     }
                 }
-                foreach(int key in dict.Keys)
+                foreach (int key in dict.Keys)
                 {
                     LukujarjestysDGV.Rows[key].Height = dict[key] * 50;
                 }
@@ -667,7 +667,7 @@ namespace Lukujärjestys
             try
             {
                 string ExeTiedosto = Environment.GetCommandLineArgs()[0];                                   //Exe:n sijainti
-                for (int i = 0; i < Regex.Matches(ExeTiedosto,@"\\").Count; i++)                            //Etsitään tietostoa korkeammista kansioista
+                for (int i = 0; i < Regex.Matches(ExeTiedosto, @"\\").Count; i++)                            //Etsitään tietostoa korkeammista kansioista
                 {
                     if (Path.GetFileName(ExeTiedosto).Contains("Program Files"))
                         break;
@@ -726,8 +726,9 @@ namespace Lukujärjestys
             }
             Settings.Default["Polku"] = polku;
             Settings.Default.Save();
+            AccessHandler.SuljeYhteys();
             AccessHandler.Yhdista(polku);
-            AccessHandler.ViestienNaytto(Ulkoiset:Ulkoiset,Sisaiset:Sisaiset);
+            AccessHandler.ViestienNaytto(Ulkoiset: Ulkoiset, Sisaiset: Sisaiset);
             taulut = AccessHandler.EtsiTaulut();
             taulut.Remove("Lukkari");
             DTC = AccessHandler.HaeTaulut(taulut);
@@ -780,14 +781,14 @@ namespace Lukujärjestys
             CheckBoxOmat.Location = new Point(OmatPoint.X, OmatPoint.Y + yMuutos);
 
             Puu.Height = PuuSize.Height + yMuutos;
-            Puu.Location = new Point(PuuPoint.X ,PuuPoint.Y);
+            Puu.Location = new Point(PuuPoint.X, PuuPoint.Y);
             Puu.Width = splitContainer1.Panel1.Width - 6;
 
             TextBoxEtsi.Location = new Point(HakuPoint.X, HakuPoint.Y);
 
-            ButtonApu.Location = new Point(splitContainer1.Panel2.Width+splitContainer1.Panel1.Width-30, ApuPoint.Y);
+            ButtonApu.Location = new Point(splitContainer1.Panel2.Width + splitContainer1.Panel1.Width - 30, ApuPoint.Y);
 
-            LabelNimi.Location = new Point(splitContainer1.Panel1.Width+500, NimiPoint.Y + yMuutos);
+            LabelNimi.Location = new Point(splitContainer1.Panel1.Width + 500, NimiPoint.Y + yMuutos);
         }
 
         private void Puu_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -795,14 +796,14 @@ namespace Lukujärjestys
             if (e.Button == MouseButtons.Right)
             {
                 NodeNimi = e.Node.Text;
-                if(e.Node.Level != 2)
+                if (e.Node.Level != 2)
                 {
                     if (e.Node.Level == 0)
                         NodeParent = true;
                     else
                         NodeParent = false;
                     NodeValittu = e.Node;
-                    cMenuPuu.Show(Puu, e.Location);                    
+                    cMenuPuu.Show(Puu, e.Location);
                 }
             }
         }
@@ -837,13 +838,13 @@ namespace Lukujärjestys
                 Puu.Select();
                 foreach (TreeNode node in Puu.Nodes)
                 {
-
                     AccessHandler.Viesti(node.Text);
                     if (node.Text.ToLower().Equals(TextBoxEtsi.Text.ToLower()))
                     {
                         Puu.SelectedNode = node;
                         return;
-                    }else if (node.ToolTipText.ToLower().Contains(TextBoxEtsi.Text.ToLower()))
+                    }
+                    else if (node.ToolTipText.ToLower().Contains(TextBoxEtsi.Text.ToLower()))
                     {
                         Puu.SelectedNode = node;
                         return;
@@ -859,9 +860,9 @@ namespace Lukujärjestys
             if (rd.Checked)
             {
                 List<TreeNode> poistettavat = new List<TreeNode>();
-                foreach(TreeNode node in Puu.Nodes)
+                foreach (TreeNode node in Puu.Nodes)
                 {
-                    if(node.ForeColor != Color.DarkGreen)
+                    if (node.ForeColor != Color.DarkGreen)
                     {
                         poistettavat.Add(node);
                         taulut.Remove(node.Text);
@@ -890,7 +891,7 @@ namespace Lukujärjestys
             dialogi.Filter = ".mdb|*.mdb";
             dialogi.Multiselect = false;
             var res = dialogi.ShowDialog();
-            if(res == DialogResult.OK)
+            if (res == DialogResult.OK)
             {
                 YhdistaTietokanta(dialogi.FileName);
             }
@@ -898,7 +899,7 @@ namespace Lukujärjestys
 
         private void LukujarjestysDGV_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Right)
+            if (e.Button == MouseButtons.Right)
             {
                 ContextMenu cMenuDGV = new ContextMenu();
                 Paiva = Paivat[e.ColumnIndex];
@@ -909,9 +910,9 @@ namespace Lukujärjestys
                 int edellinen = 0;
                 int kierrokset = 0;
                 ContextMenu CM = new ContextMenu();
-                foreach(Match osuma in reg.Matches(teksti))                             //Tehdään jokaiselle solun kurssille oma MenuItem ja kasataan ContextMenu
+                foreach (Match osuma in reg.Matches(teksti))                             //Tehdään jokaiselle solun kurssille oma MenuItem ja kasataan ContextMenu
                 {
-                    if(kierrokset % 2 == 0)
+                    if (kierrokset % 2 == 0)
                     {
                         string nimi = teksti.Substring(edellinen, osuma.Index - edellinen).Trim();
                         MenuItem it = new MenuItem("Poista " + nimi);
@@ -933,7 +934,7 @@ namespace Lukujärjestys
 
         private void TextBoxEtsi_Enter(object sender, EventArgs e)
         {
-            if(TextBoxEtsi.ForeColor == Color.Gray)
+            if (TextBoxEtsi.ForeColor == Color.Gray)
             {
                 TextBoxEtsi.Text = "";
                 TextBoxEtsi.ForeColor = Color.Black;
@@ -943,7 +944,7 @@ namespace Lukujärjestys
         private void ButtonApu_Click(object sender, EventArgs e)
         {
             Point DGVLoc = LukujarjestysDGV.FindForm().PointToClient(LukujarjestysDGV.Parent.PointToScreen(LukujarjestysDGV.Location));
-            Point MidDGVLoc = new Point(DGVLoc.X+(int)LukujarjestysDGV.Width/2, (int)LukujarjestysDGV.Height / 2);
+            Point MidDGVLoc = new Point(DGVLoc.X + (int)LukujarjestysDGV.Width / 2, (int)LukujarjestysDGV.Height / 2);
             //verbatim literal @ stringiä voi jatkaa usealle riville
             tip1.Show(@"Lukujärjestys, tässä näkyy valittujen kurssien aikataulut.
 Kursseja voi poistaa joko luettelosta tai painamalla postettavan kurssin solua hiiren oikealla näppäimellä.
@@ -959,7 +960,7 @@ Vihreä = kurssilta on valittu jotain, luento/harjoitus on valittu.
 Sininen = luennolla/harjoituksella ei ole päivää Unin taulukoissa.",
             this, Puu.FindForm().PointToClient(Puu.Parent.PointToScreen(Puu.Location)));
 
-            tip3.Show("Tämä valittuna näet listalla vain valitsemasi kurssit.", this, 
+            tip3.Show("Tämä valittuna näet listalla vain valitsemasi kurssit.", this,
                 CheckBoxOmat.FindForm().PointToClient(CheckBoxOmat.Parent.PointToScreen(CheckBoxOmat.Location)));
         }
 
@@ -983,7 +984,6 @@ Sininen = luennolla/harjoituksella ei ole päivää Unin taulukoissa.",
                 sovitettu = false;
                 toolStripButton4.Checked = false;
             }
-
         }
 
         private void splitContainer1_SplitterMoved(object sender, SplitterEventArgs e)
@@ -996,10 +996,10 @@ Sininen = luennolla/harjoituksella ei ole päivää Unin taulukoissa.",
             FolderBrowserDialog fbd = new FolderBrowserDialog();
             fbd.Description = "Valitse tallennettavan kuvan sijainti";
             var res = fbd.ShowDialog();
-            if(res == DialogResult.OK)
+            if (res == DialogResult.OK)
             {
                 Bitmap b = new Bitmap(LukujarjestysDGV.Width, LukujarjestysDGV.Height);
-                LukujarjestysDGV.DrawToBitmap(b, new Rectangle(0,0,LukujarjestysDGV.Width, LukujarjestysDGV.Height));
+                LukujarjestysDGV.DrawToBitmap(b, new Rectangle(0, 0, LukujarjestysDGV.Width, LukujarjestysDGV.Height));
                 b.Save(fbd.SelectedPath + "\\Lukujarjestys.jpg");
                 MessageBox.Show(@"Muista että lukujärjestys voi vaihdella viikoittain!
 Kuva tallennettu, " + fbd.SelectedPath + "\\Lukujarjestys.jpg", "Kuva tallennettu", MessageBoxButtons.OK);
@@ -1016,7 +1016,7 @@ Kuva tallennettu, " + fbd.SelectedPath + "\\Lukujarjestys.jpg", "Kuva tallennett
         private void ButtonPoistaKaikki_Click(object sender, EventArgs e)
         {
             var vastaus = MessageBox.Show("Poistetaanko kaikki valitut kurssit?", "Taulun tyhjennys", MessageBoxButtons.YesNo);
-            if(vastaus == DialogResult.Yes)
+            if (vastaus == DialogResult.Yes)
             {
                 AccessHandler.SQLkomentoTaulu(SQLRakentaja.DELETE("Lukkari"));
                 TeePuu();
@@ -1024,6 +1024,17 @@ Kuva tallennettu, " + fbd.SelectedPath + "\\Lukujarjestys.jpg", "Kuva tallennett
                 TeeLukujarjestysRAW();
                 TeeLukujarjestysDT();
             }
+        }
+
+        private void toolStripButton5_Click(object sender, EventArgs e)
+        {
+            DataTable DT = AccessHandler.SQLkomento("SELECT DISTINCT * FROM lukkari")[0];           //Valitsee lukkarista kaikki uniikit rivit
+            AccessHandler.Viesti(DT.Rows.Count + " uniikkia");
+            AccessHandler.SQLkomentoTaulu(SQLRakentaja.DELETE("Lukkari"));                          //Tyhjennetään Lukkari
+            AccessHandler.InsertDataTable(DT, lukkariSarakkeet, "Lukkari");                         //Täytetään Lukkari uniikeilla riveillä
+            DGVAsetukset();                                                                         //Tyhjennetään näytettävä lukujärjestys
+            TeeLukujarjestysRAW();                                                                  //Päivitetään ohjelman lukujärjestys
+            TeeLukujarjestysDT();                                                                   //Etsitään olennaiset tunnit
         }
     }
 }

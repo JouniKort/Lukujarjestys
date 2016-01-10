@@ -5,7 +5,7 @@ VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lukujärjestys", "Lukujärjestys\Lukujärjestys.csproj", "{C308FF9F-5BD1-41CE-8A7A-13DB49988F74}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup1", "Setup1\Setup1.vdproj", "{FCB0C7FC-2D5A-4BBE-8DEC-2FCB326229E7}"
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{F2EDFCA1-131C-49EF-9FB0-831D78939017}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,8 +17,8 @@ Global
 		{C308FF9F-5BD1-41CE-8A7A-13DB49988F74}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C308FF9F-5BD1-41CE-8A7A-13DB49988F74}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C308FF9F-5BD1-41CE-8A7A-13DB49988F74}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FCB0C7FC-2D5A-4BBE-8DEC-2FCB326229E7}.Debug|Any CPU.ActiveCfg = Debug
-		{FCB0C7FC-2D5A-4BBE-8DEC-2FCB326229E7}.Release|Any CPU.ActiveCfg = Release
+		{F2EDFCA1-131C-49EF-9FB0-831D78939017}.Debug|Any CPU.ActiveCfg = Debug
+		{F2EDFCA1-131C-49EF-9FB0-831D78939017}.Release|Any CPU.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
